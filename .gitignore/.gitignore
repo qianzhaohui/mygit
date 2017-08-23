@@ -1,0 +1,191 @@
+--存款个人业绩明细
+--传入条件：查询日期、考核对象代号、时段标识、币种、账户标识、科目号、账户属性 、派生存款标志 tjrq=[20161231] & khdxdh=[1] & sdbs=[1] & bz=[01] & zhbs=[1] & zhsx=1 &sqlstr =[AND (km.KMH LIKE '2016%' OR km.KMH LIKE '2017%') and (case when psck.psckzh is not null then '1' else '0' end)='1']
+----统计日期、客户号、账号、子账号、账户名称、开户机构、科目号、科目名称、币种、期限名称、帐户余额、账户基数、
+----账户时点基数、行员时点余额、行员月日均、行员季日均、行员年日均、占比%、账户标识、账户属性、产品号、开户日期、到期日期、销户日期
+----无派生存款条件:$sqlstr$变量传入值： AND (km.KMH LIKE '2016%' OR km.KMH LIKE '2017%')
+----有派生存款条件:$sqlstr$变量传入值： AND (km.KMH LIKE '2016%' OR km.KMH LIKE '2017%') and (case when psck.psckzh is not null then '1' else '0' end)='1'
+----币种:01
+select * from (
+select $tjrq$ as tjrq,mx.khdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs,jszh.sdye,mx.hyye
+,mx.hyylj/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as hyyrj
+,mx.hyjlj/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as hyjrj
+,mx.hynlj/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as hynrj
+,mx.zlbl as zb,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+
+from NBZZ_CKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and mx.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$'  and zh.bz='01' and '$bz$'='01' $sqlstr$;
+)
+----币种:0A时
+select $tjrq$ as tjrq,mx.khdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs*hl.zrmbhl  as zhjs,jszh.sdye*hl.zrmbhl  as sdye,mx.hyye
+,mx.hyylj/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as hyyrj
+,mx.hyjlj/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as hyjrj
+,mx.hynlj/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as hynrj
+,mx.zlbl as zb,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_CKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join pas.csb_hl hl on zh.bz=hl.bz and $tjrq$  between hl.qsrq and hl.jsrq 
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and mx.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$'  and '$bz$'='0A' $sqlstr$;
+----币种:0B时
+select $tjrq$ as tjrq,mx.khdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs*hl.zrmbhl  as zhjs,jszh.sdye*hl.zrmbhl  as sdye,mx.hyye
+,mx.hyylj/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as hyyrj
+,mx.hyjlj/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as hyjrj
+,mx.hynlj/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as hynrj
+,mx.zlbl as zb,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_CKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join pas.csb_hl hl on zh.bz=hl.bz and $tjrq$  between hl.qsrq and hl.jsrq 
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and mx.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$' and zh.bz<>'01' '$bz$'='0B' $sqlstr$;
+----币种:0C时
+select $tjrq$ as tjrq,mx.khdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs*hl.zmyhl  as zhjs,jszh.sdye*hl.zmyhl  as sdye,mx.hyye
+,mx.hyylj/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as hyyrj
+,mx.hyjlj/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as hyjrj
+,mx.hynlj/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as hynrj
+,mx.zlbl as zb,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_WBCKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join pas.csb_hl hl on zh.bz=hl.bz and $tjrq$  between hl.qsrq and hl.jsrq 
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and mx.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$' and zh.bz<>'01' '$bz$'='0C' $sqlstr$;
+
+--存款账户业绩明细(会计口径)
+------币种:01
+select $tjrq$ as tjrq,jg.khdxdh as jgkhdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs,jszh.sdye
+,sum(mx.hyylj)/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as zhylj
+,sum(mx.hyjlj)/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as zhjrj
+,sum(mx.hynlj)/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as zhnrj
+,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_CKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh  on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and jg.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$'  and zh.bz='01' $sqlstr$
+group by jg.khdxdh ,zh.khh,zh.zhdh,zh.zzh,zh.zhhm ,jg.jgmc ,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs,jszh.sdye
+		,bs.dmms,sx.dmms ,zh.cph,zh.khrq,zh.dqrq,zh.xhrq;
+/*
+select $tjrq$ as tjrq,jg.khdxdh as jgkhdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,qx.qx,qx.qxmc
+,b.zhye,jszh.zhjs,jszh.sdye
+,cast((b.njs+b.zhye*(F_GET_DAYS(b.qsrq,$tjrq$)-1))-(coalesce(sym.njs,0)+coalesce(sym.zhye,0)*(F_GET_DAYS(coalesce(sym.qsrq,19000101),$tjrq_sym$)-1)) as float)/cast(f_get_days($tjrq_yc$,$tjrq$) as float) as zhyrj
+,cast((b.njs+b.zhye*(F_GET_DAYS(b.qsrq,$tjrq$)-1))-(coalesce(sjm.njs,0)+coalesce(sjm.zhye,0)*(F_GET_DAYS(coalesce(sjm.qsrq,19000101),$tjrq_sjm$)-1)) as float)/cast(f_get_days($tjrq_jc$,$tjrq$) as float) as zhjrj
+,cast(b.njs+b.zhye*(F_GET_DAYS(b.qsrq,$tjrq$ )-1) as float)/cast(F_GET_DAYS($tjrq_nc$,$tjrq$) as float) as zhnrj
+,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from jxdx_ckzh zh 
+inner join jxdx_ckzhmx_$tjrq_yyyy$  b on a.jxdxdh=b.jxdxdh and $tjrq$  between b.qsrq and b.jsrq
+left  join jxdx_ckzhmx_$tjrq_sjmyyyy$ sjm on a.jxdxdh=sjm.jxdxdh and $tjrq_sjm$ between sjm.qsrq and sjm.jsrq
+left  join jxdx_ckzhmx_$tjrq_symyyyy$  sym on a.jxdxdh=sym.jxdxdh and $tjrq_sym$  between sym.qsrq and sym.jsrq
+inner join jxdx_ckzhqmx_$tjrq_yyyy$  c on a.jxdxdh=c.jxdxdh and $tjrq$  between c.qsrq and c.jsrq
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and mx.khdxdh=$khdxdh$ and zh.zhsx='$zhsx$'  and zh.bz='01' $sqlstr$;
+*/
+------币种:0A
+select $tjrq$ as tjrq,jg.khdxdh as jgkhdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs*hl.zrmbhl as zhjs,jszh.sdye*hl.zrmbhl as zhjs
+,sum(mx.hyylj)/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as zhylj
+,sum(mx.hyjlj)/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as zhjrj
+,sum(mx.hynlj)/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as zhnrj
+,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_CKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh  on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join pas.csb_hl hl on zh.bz=hl.bz and $tjrq$  between hl.qsrq and hl.jsrq 
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and jg.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$'  $sqlstr$
+group by jg.khdxdh ,zh.khh,zh.zhdh,zh.zzh,zh.zhhm ,jg.jgmc ,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs,jszh.sdye
+		,bs.dmms,sx.dmms ,zh.cph,zh.khrq,zh.dqrq,zh.xhrq,hl.zrmbhl
+		
+------币种:0B
+select $tjrq$ as tjrq,jg.khdxdh as jgkhdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs*hl.zrmbhl as zhjs,jszh.sdye*hl.zrmbhl as zhjs
+,sum(mx.hyylj)/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as zhylj
+,sum(mx.hyjlj)/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as zhjrj
+,sum(mx.hynlj)/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as zhnrj
+,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_CKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh  on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join pas.csb_hl hl on zh.bz=hl.bz and $tjrq$  between hl.qsrq and hl.jsrq 
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and jg.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$'  and zh.bz<>'01' $sqlstr$
+group by jg.khdxdh ,zh.khh,zh.zhdh,zh.zzh,zh.zhhm ,jg.jgmc ,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs,jszh.sdye
+		,bs.dmms,sx.dmms ,zh.cph,zh.khrq,zh.dqrq,zh.xhrq,hl.zrmbhl		
+------币种:0C
+select $tjrq$ as tjrq,jg.khdxdh as jgkhdxdh,zh.khh,zh.zhdh,zh.zzh,zh.zhhm as zhmc,jg.jgmc as khjg,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs*hl.zmyhl as zhjs,jszh.sdye*hl.zmyhl as zhjs
+,sum(mx.hyylj)/F_GET_SYSQSRQ_DAYS(sjw.yc,$tjrq$) as zhylj
+,sum(mx.hyjlj)/F_GET_SYSQSRQ_DAYS(sjw.jc,$tjrq$) as zhjrj
+,sum(mx.hynlj)/F_GET_SYSQSRQ_DAYS(sjw.nc,$tjrq$) as zhnrj
+,bs.dmms as zhbs,sx.dmms as zhsx,zh.cph,zh.khrq,zh.dqrq,zh.xhrq
+from NBZZ_WBCKMX_$tjrq_yyyymm$ mx
+inner join jxdx_ckzh zh  on mx.jxdxdh=zh.jxdxdh
+inner join khdx_jg jg on zh.jgdh=jg.jgdh
+inner join csb_km km on mx.kmh=km.kmh
+inner join csb_sjw sjw on sjw.tjrq=$tjrq$
+inner join csb_qxsdb qx on zh.qx between qx.qsqx and qx.jsqx and qx.jxdxlx=1
+inner join csb_bz bz on mx.bz=bz.bz
+left  join jxdx_ckjszh_$tjrq_yyyy$ jszh on jszh.jxdxdh = zh.jxdxdh and jszh.tjrq = $tjrq_yyyy$0101 
+inner join csb_dmms bs on bs.dmmc='ZHBS' and zh.zhbs=bs.dmz
+inner join csb_dmms sx on sx.dmmc='CKZHSX' and zh.zhsx=sx.dmz
+left outer join pas.csb_hl hl on zh.bz=hl.bz and $tjrq$  between hl.qsrq and hl.jsrq 
+left outer join (select psckzh from pas.jxdx_dkzh group by psckzh)  psck on zh.zhdh=psck.psckzh
+where mx.tjrq=$tjrq$   and jg.khdxdh=$khdxdh$ and zh.zhbs='$zhbs$' and zh.qx='$qx$' and zh.zhsx='$zhsx$' and zh.bz<>'01' $sqlstr$
+group by jg.khdxdh ,zh.khh,zh.zhdh,zh.zzh,zh.zhhm ,jg.jgmc ,km.kmh,km.kmmc,bz.bzzwmc,qx.qxmc,mx.zhye,jszh.zhjs,jszh.sdye
+		,bs.dmms,sx.dmms ,zh.cph,zh.khrq,zh.dqrq,zh.xhrq,hl.zmyhl			
